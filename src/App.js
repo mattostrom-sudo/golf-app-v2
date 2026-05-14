@@ -213,6 +213,7 @@ export default function App() {
   const [roundDate, setRoundDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [spectatingRound, setSpectatingRound] = useState(null);
   const [startingHole, setStartingHole] = useState(1);
   const [selectedGames, setSelectedGames] = useState(() =>
     JSON.parse(localStorage.getItem("selectedGames") || '["Stroke Play"]')
@@ -238,6 +239,14 @@ export default function App() {
   // Replace the old line 175 with this:
   const [diceCount, setDiceCount] = useState(1);
   const [showDeepLinkBanner, setShowDeepLinkBanner] = useState(false);
+  const matchConfigRef = useRef(matchConfig);
+  const vegasConfigRef = useRef(vegasConfig);
+  useEffect(() => {
+    matchConfigRef.current = matchConfig;
+  }, [matchConfig]);
+  useEffect(() => {
+    vegasConfigRef.current = vegasConfig;
+  }, [vegasConfig]);
   const rawStandings = calculatePOTY(roundHistory, majors, playerDirectory);
   const potyStandings = rawStandings.map((standing) => {
     // Find this player in your directory to see if they are a member
@@ -353,7 +362,26 @@ export default function App() {
         .select("*")
         .eq("user_id", currentUser.id)
         .single();
+      // If no active round for this user, check for any active round to spectate
+      if (!activeRound) {
+        const { data: anyActiveRounds } = await supabase
+          .from("active_rounds")
+          .select("*")
+          .order("updated_at", { ascending: false })
+          .limit(1);
 
+        const anyActiveRound = anyActiveRounds?.[0] || null;
+        console.log(
+          "anyActiveRound found:",
+          anyActiveRound?.id,
+          "spectatingRound will be set:",
+          !!anyActiveRound
+        );
+        if (anyActiveRound) {
+          setSpectatingRound(anyActiveRound);
+          setView("leaderboard");
+        }
+      }
       if (activeRound) {
         setPlayers(activeRound.players || []);
         setScores(activeRound.scores || {});
@@ -369,6 +397,7 @@ export default function App() {
             Object.keys(prev).length === 0 ? activeRound.player_handicaps : prev
           );
         }
+
         // Only redirect to scorecard if not already on a stats view
         const statsViews = [
           "holeStats",
@@ -503,6 +532,24 @@ export default function App() {
         });
     }
   }, [view, user]);
+  // Spectator real-time subscription
+  useEffect(() => {
+    if (!spectatingRound) return;
+
+    const channel = supabase
+      .channel("spectate-active-round")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "active_rounds" },
+        (payload) => {
+          setSpectatingRound(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [spectatingRound?.user_id]);
+
   // --- 5. APP LOGIC HANDLERS ---
   const syncActiveRound = async () => {
     if (!user || players.length === 0) return;
@@ -517,7 +564,9 @@ export default function App() {
       current_hole_index: currentHoleIndex,
       selected_games: selectedGames,
       kept_holes: keptHoles,
-      vegas_config: vegasConfig,
+      vegas_config: vegasConfigRef.current,
+      match_config: matchConfigRef.current,
+      is_nassau: isNassau,
       updated_at: new Date().toISOString(),
     };
 
@@ -564,9 +613,16 @@ export default function App() {
     const timer = setTimeout(() => {
       syncActiveRound();
     }, 1000);
-
     return () => clearTimeout(timer);
-  }, [scores, players, currentHoleIndex, selectedCourse, advancedStats]); // Added advancedStats here
+  }, [
+    scores,
+    players,
+    currentHoleIndex,
+    selectedCourse,
+    advancedStats,
+    matchConfig,
+    vegasConfig,
+  ]);
 
   const handleFinishRound = async () => {
     if (!user) return;
@@ -971,7 +1027,12 @@ export default function App() {
           const historicalSource =
             selectedSummaryRound ||
             (roundHistory.length > 0 ? roundHistory[0] : null);
-          const source = isRoundActive ? null : historicalSource;
+          const isLiveSpectating = !isRoundActive && !!spectatingRound;
+          const source = isRoundActive
+            ? null
+            : isLiveSpectating
+            ? spectatingRound
+            : historicalSource;
           console.log(
             "leaderboardHandicaps at render:",
             JSON.stringify(leaderboardHandicaps)
@@ -985,26 +1046,58 @@ export default function App() {
           console.log("App vegasConfig state:", JSON.stringify(vegasConfig));
           return (
             <Leaderboard
-              players={isRoundActive ? players : source?.players || []}
-              scores={isRoundActive ? scores : source?.scores || {}}
+              players={
+                isRoundActive
+                  ? players
+                  : isLiveSpectating
+                  ? spectatingRound?.players || []
+                  : source?.players || []
+              }
+              scores={
+                isRoundActive
+                  ? scores
+                  : isLiveSpectating
+                  ? spectatingRound?.scores || {}
+                  : source?.scores || {}
+              }
               selectedCourse={
-                isRoundActive ? selectedCourse : source?.course_data || null
+                isRoundActive
+                  ? selectedCourse
+                  : isLiveSpectating
+                  ? spectatingRound?.selected_course || null
+                  : source?.course_data || null
               }
               playerHandicaps={leaderboardHandicaps}
-              keptHoles={isRoundActive ? keptHoles : source?.kept_holes || {}}
+              keptHoles={
+                isRoundActive
+                  ? keptHoles
+                  : isLiveSpectating
+                  ? spectatingRound?.kept_holes || {}
+                  : source?.kept_holes || {}
+              }
               selectedGames={
                 isRoundActive
                   ? selectedGames
+                  : isLiveSpectating
+                  ? spectatingRound?.selected_games || ["Stroke Play"]
                   : source?.selected_games || ["Stroke Play"]
               }
               matchConfig={
-                isRoundActive ? matchConfig : source?.match_config || null
+                isRoundActive
+                  ? matchConfig
+                  : isLiveSpectating
+                  ? spectatingRound?.match_config || null
+                  : source?.match_config || null
               }
               vegasConfig={
-                isRoundActive ? vegasConfig : source?.vegas_config || null
+                isRoundActive
+                  ? vegasConfig
+                  : isLiveSpectating
+                  ? spectatingRound?.vegas_config || null
+                  : source?.vegas_config || null
               }
               roundDate={isRoundActive ? roundDate : source?.date}
-              isHistorical={!isRoundActive}
+              isHistorical={!isRoundActive && !isLiveSpectating}
               isMajor={
                 isRoundActive ? activeMajorInfo.isMajor : source?.is_major
               }
@@ -1273,9 +1366,8 @@ export default function App() {
       {view === "birdieBet" && (
         <BirdieBetView
           playerDirectory={playerDirectory}
-          roundHistory={roundHistory}
           courseDirectory={courseDirectory}
-          onBack={() => setView("dashboard")}
+          user={user}
         />
       )}
       {view === "diceRoller" && (
