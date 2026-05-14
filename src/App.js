@@ -1368,6 +1368,9 @@ export default function App() {
           playerDirectory={playerDirectory}
           courseDirectory={courseDirectory}
           user={user}
+          userProfileId={
+            playerDirectory.find((p) => p.email === user?.email)?.id
+          }
         />
       )}
       {view === "diceRoller" && (
