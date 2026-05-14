@@ -30,6 +30,7 @@ export default function BirdieBetView({
       .from("birdie_bet_entries")
       .select("*")
       .eq("year", currentYear);
+      console.log("birdie_bet_entries:", data, "error:", error);
     if (!error) setEntries(data || []);
     setLoading(false);
   };
