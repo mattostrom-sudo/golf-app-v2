@@ -1,0 +1,2933 @@
+/* --- 1. CORE VARIABLES & BASE --- */
+:root {
+  --primary-green: #1a3c2f;
+  --accent-green: #2d6a4f;
+  --light-bg: #f8f9fa;
+  --glass: rgba(255, 255, 255, 0.95);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --error-red: #d32f2f;
+  --border-color: #ddd;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", -apple-system, sans-serif;
+  background-color: var(--light-bg);
+  color: #333;
+}
+
+/* 1. Allow the shell to be as tall as its content */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 500px;
+  margin: 0 auto;
+  background: white;
+  position: relative;
+}
+
+/* 2. Remove the flex-grow that forces the footer to the bottom */
+.scorecard-view {
+  display: block !important; /* Switch from flex to block for natural stacking */
+  padding: 20px !important;
+  margin-top: 60px !important;
+}
+
+.scorecard-content-wrapper {
+  flex: 1 0 auto !important; /* This pushes the footer down naturally */
+}
+
+/* 4. The Footer now naturally follows the content above it */
+.scorecard-footer-fixed {
+  margin-top: 30px !important; /* Fixed gap between players and buttons */
+  padding: 20px 0 40px 0; /* Extra padding at the very bottom */
+  width: 100%;
+  background: white;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --- 3. SCORECARD COMPONENTS --- */
+.scoring-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--primary-green);
+  color: white;
+  padding: 30px 20px;
+  margin-bottom: 25px;
+  border-radius: 12px;
+}
+
+.hole-indicator h2 {
+  font-size: 5rem;
+  font-weight: 900;
+  margin: 0;
+  line-height: 0.8;
+}
+.hole-indicator span {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.stat-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-align: center;
+  min-width: 60px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.glass-card {
+  background: var(--glass);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+.player-score-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.player-name-label {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--primary-green);
+}
+
+.score-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.score-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  font-size: 1.4rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-input-box {
+  width: 55px;
+  height: 42px;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+/* --- 4. BUTTONS & UTILS --- */
+/* Ensure the leaderboard footer button matches the primary green style */
+.leaderboard-view .next-hole-btn-large {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(26, 60, 47, 0.2);
+}
+
+.scorecard-button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.view-card-btn,
+.view-leaderboard-btn {
+  background: #f0f4f2;
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  color: var(--primary-green);
+  font-size: 0.85rem;
+}
+
+.secondary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 5px 0;
+}
+.back-btn-text,
+.finish-btn-text {
+  background: none;
+  border: none;
+  color: #666;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+.finish-btn-text {
+  color: var(--error-red);
+}
+
+.live-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.live-badge.even {
+  background: #f0f0f0;
+  color: #666;
+}
+.live-badge.over {
+  background: #ffebee;
+  color: #c62828;
+}
+.live-badge.under {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* --- 5. NAV & MENU --- */
+.nav-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1100;
+  padding: 15px;
+  display: flex;
+  gap: 12px;
+  pointer-events: none;
+}
+.nav-header button {
+  pointer-events: auto;
+}
+.menu-toggle {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+/* --- 8. LEADERBOARD UI --- */
+.leaderboard-view {
+  padding: 20px;
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.leaderboard-view h2 {
+  color: var(--primary-green);
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+
+.course-info-sub {
+  color: #666;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.leaderboard-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.lb-rank {
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: var(--accent-green);
+  width: 30px;
+}
+
+.lb-player-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.lb-player-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--primary-green);
+}
+
+.lb-thru {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #999;
+  letter-spacing: 0.5px;
+}
+
+.lb-score-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  height: 44px;
+  min-width: 50px;
+}
+
+.badge-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.badge-value {
+  font-size: 1rem;
+  font-weight: 800;
+}
+/* Small Gross Pill next to name */
+.lb-gross-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: #f0f0f0;
+  color: #666;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Primary Net Badge on the right */
+.score-badge.net-main {
+  width: 65px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Color coding for the Net box */
+.score-badge.net-main.even {
+  background: #f8f9fa;
+  color: #666;
+}
+.score-badge.net-main.over {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid rgba(198, 40, 40, 0.1);
+}
+.score-badge.net-main.under {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.1);
+}
+
+.badge-label {
+  font-size: 0.6rem;
+  font-weight: 900;
+  margin-bottom: -2px;
+}
+
+.badge-value {
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+/* Secondary button style for the back button */
+.secondary-btn {
+  background: #f0f0f0 !important;
+  color: #333 !important;
+  box-shadow: none !important;
+}
+.lb-gross-box-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f4f6f5;
+  border: 1px solid #e0e4e2;
+  border-radius: 6px;
+  padding: 2px 6px;
+  min-width: 45px;
+}
+
+.mini-label {
+  font-size: 0.5rem;
+  font-weight: 900;
+  color: #888;
+  line-height: 1;
+}
+
+.mini-value {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #444;
+}
+
+.secondary-btn {
+  background: #eee !important;
+  color: #333 !important;
+  box-shadow: none !important;
+}
+/* Force the primary green style on the Next Hole button */
+.next-hole-btn-large {
+  background-color: var(--primary-green) !important;
+  color: white !important;
+  border: none !important;
+  padding: 16px !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  font-size: 1.1rem !important;
+  width: 100% !important;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(26, 60, 47, 0.2) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.next-hole-btn-large:active {
+  transform: scale(0.98);
+}
+/* --- VERTICAL SCORECARD GRID --- */
+
+/* --- 10. VERTICAL SCORECARD GRID (Optimized) --- */
+.scorecard-container-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #eee;
+  box-shadow: var(--shadow);
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 30px;
+}
+
+.vertical-scorecard-grid {
+  display: grid;
+  background: white;
+  /* Columns defined dynamically in JS based on player count */
+}
+
+.grid-cell {
+  padding: 12px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+  min-height: 60px;
+}
+
+.header-cell {
+  background: var(--primary-green);
+  color: white;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: white;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  width: 65px;
+}
+
+.header-cell.sticky-col {
+  background: var(--primary-green);
+  z-index: 11;
+}
+
+.score-cell {
+  font-weight: 700;
+  color: var(--primary-green);
+  font-size: 1.1rem;
+}
+
+.h-num {
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.h-details {
+  font-size: 0.6rem;
+  color: #888;
+  font-weight: 600;
+}
+
+/* Row zebra-striping */
+.vertical-scorecard-grid > div:nth-child(even) {
+  /* This works differently in grid, 
+     better to style the .hole-info-cell specifically */
+}
+
+.h-num {
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.h-details {
+  font-size: 0.6rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* THE STICKY HOLE COLUMN */
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: white; /* Must be solid to cover players sliding under */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05); /* Slight shadow to show separation */
+  width: 60px;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.table-header-row .sticky-col {
+  background: var(--primary-green);
+  color: white;
+}
+
+/* PLAYER COLUMNS SECTION */
+.player-cols-wrapper {
+  display: flex;
+  flex: 1;
+}
+
+.player-score-col {
+  width: 80px; /* Fixed width for each player column */
+  min-width: 80px;
+  text-align: center;
+  padding: 12px 5px;
+  border-right: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.table-header-row .player-score-col {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+/* Details within the Hole column */
+.h-num {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.h-details {
+  font-size: 0.6rem;
+  color: #888;
+  font-weight: 600;
+}
+/* --- UPDATED WRAPPING STYLES --- */
+
+.player-name-cell {
+  /* Remove white-space: nowrap if it was there */
+  white-space: normal !important;
+  word-wrap: break-word;
+  text-align: center;
+  line-height: 1.2;
+  padding: 8px 4px !important;
+  font-size: 0.8rem !important;
+  /* Ensures the name stays centered even if it wraps */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-cell {
+  padding: 10px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+  /* min-height ensures short rows aren't too squashed */
+  min-height: 65px;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: white;
+  /* This ensures the hole column stays the same height as the wrapped name row */
+  height: 100%;
+}
+.secondary-row-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.footer-nav-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+}
+
+.footer-nav-btn.secondary {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.footer-nav-btn.finish-active {
+  background: var(--error-red);
+  color: white;
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.2);
+}
+.menu-divider {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 10px 0;
+  width: 100%;
+}
+
+.menu-finish-btn {
+  color: var(--accent-green) !important;
+  font-weight: 800 !important;
+  text-align: left;
+}
+
+.cancel-link {
+  color: var(--error-red) !important;
+  font-weight: 600 !important;
+  opacity: 0.8;
+  text-align: left;
+}
+/* Navigation & Drawer */
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.menu-overlay.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+.menu-drawer {
+  position: absolute;
+  top: 0;
+  left: -280px; /* Start off-screen */
+  width: 280px;
+  height: 100%;
+  background: white;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.menu-drawer.open {
+  left: 0; /* Slide in */
+}
+
+.menu-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.menu-links button {
+  background: #f8f9fa;
+  border: none;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  transition: background 0.2s;
+}
+
+.menu-links button:active {
+  background: #e9ecef;
+}
+
+.menu-section-label {
+  font-size: 0.75rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 15px 0 5px 5px;
+}
+
+.menu-finish-btn {
+  background: #e7f3ef !important;
+  color: #2d6a4f !important;
+}
+
+.cancel-link {
+  background: #fff5f5 !important;
+  color: #c92a2a !important;
+}
+
+.menu-footer {
+  margin-top: auto;
+  padding-bottom: 20px;
+}
+.profile-view {
+  padding: 20px;
+}
+
+.resume-card {
+  background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%) !important;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px !important;
+  margin-bottom: 25px;
+  cursor: pointer;
+}
+
+.live-dot {
+  width: 10px;
+  height: 10px;
+  background: #4ade80;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #4ade80;
+  animation: pulse 2s infinite;
+  margin-right: 10px;
+}
+
+.filter-tabs {
+  display: flex;
+  background: #f0f0f0;
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-tabs .tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  color: #666;
+}
+
+.filter-tabs .tab.active {
+  background: white;
+  border-radius: 8px;
+  color: #1b4332;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hero-stat-value {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #2d6a4f;
+  line-height: 1;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.stat-mini-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px !important;
+}
+
+.mini-label {
+  font-size: 0.65rem; /* Slightly smaller to accommodate "Net Score" */
+  white-space: nowrap;
+  color: #5b7c70;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.mini-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+/* Pushes the content down so the hamburger menu (nav-header) has its own space */
+.nav-spacer {
+  height: 60px;
+  width: 100%;
+}
+
+.profile-header-row {
+  padding: 0 5px;
+  margin-bottom: 20px;
+}
+
+.profile-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  text-transform: capitalize; /* Ensures "matt ostrom" becomes "Matt Ostrom" */
+}
+
+/* Ensure the hamburger button itself is properly positioned */
+.nav-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px;
+  z-index: 1001; /* Must be higher than the content but lower than the drawer */
+  background: transparent; /* Or a solid color if you want a header bar */
+  pointer-events: none; /* Allows clicking things "under" the clear parts of the header */
+}
+
+.menu-toggle {
+  pointer-events: auto; /* Re-enables clicking for the actual button */
+}
+/* Fix the Profile View Container */
+.profile-view {
+  padding-top: 80px; /* Gives room for the hamburger button */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers everything horizontally */
+  width: 100%;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 500px; /* Keeps it from getting too wide on desktop */
+  padding: 0 20px;
+}
+
+/* Fix the Header Row Alignment */
+.profile-header-row {
+  width: 100%;
+  text-align: center; /* Centers the name */
+  margin-bottom: 25px;
+}
+
+.profile-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+/* Ensure the hamburger doesn't push content */
+.nav-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* Match this padding exactly to your dashboard-content padding */
+  padding: 24px 24px 0 24px;
+  display: flex;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 1100;
+}
+
+.menu-toggle {
+  pointer-events: auto;
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  /* Remove absolute positioning and left/top here so it follows the nav-header padding */
+  position: relative;
+  margin: 0;
+}
+.stats-header-container {
+  margin: 25px 0 15px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.section-label-refined {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #555;
+  margin: 0;
+}
+
+.accent-line {
+  width: 35px;
+  height: 3px;
+  background-color: var(--primary-green, #1b4332);
+  border-radius: 2px;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.profile-header-row {
+  text-align: center;
+  margin-bottom: 20px;
+}
+/* The Prominent Handicap Card */
+.stat-hero-card.prominent {
+  background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+  border-radius: 16px;
+  padding: 30px 20px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(27, 67, 50, 0.2);
+  margin-bottom: 15px;
+}
+
+.stat-hero-card.prominent .hero-stat-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-hero-card.prominent .hero-stat-value {
+  font-size: 4rem;
+  font-weight: 900;
+  margin-top: 5px;
+  color: white;
+}
+
+/* Tinted Mini Cards */
+.stat-mini-card.tinted {
+  background-color: #e7f3ef; /* Light Mint */
+  border: 1px solid #d1e7dd;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-mini-card.tinted-alt {
+  background-color: #f1f8f6; /* Even lighter Mint */
+  border: 1px solid #e2efea;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mini-label {
+  font-size: 0.7rem;
+  color: #5b7c70;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.mini-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1b4332;
+}
+/* Increase padding to push the title below the button */
+.course-manager-view {
+  padding-top: 85px;
+}
+
+/* Ensure the header text doesn't drift left/right */
+.view-header {
+  padding: 0 20px;
+  margin-bottom: 25px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.add-course-btn-refined {
+  width: 100%;
+  margin-top: 20px;
+  padding: 18px !important;
+  background: white !important;
+  border: 2px dashed #2d6a4f !important; /* The green accent */
+  color: #2d6a4f;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.add-course-btn-refined:active {
+  transform: scale(0.98);
+  background: #f0fdf4 !important;
+}
+
+.plus-icon {
+  font-size: 1.4rem;
+}
+.course-manager-view {
+  padding-top: 80px !important; /* Pushes content down past the menu button */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.add-course-btn-refined {
+  width: 90%;
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 16px;
+  background: white;
+  border: 2px dashed #2d6a4f; /* Green dashed border */
+  border-radius: 16px;
+  color: #2d6a4f;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.add-course-btn-refined:active {
+  transform: scale(0.98);
+  background: #f0fdf4;
+}
+
+.plus-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+/* Pushes Course Library down below the Nav button */
+.course-manager-view {
+  padding-top: 85px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The Refined Add Course Button */
+.add-course-btn-large {
+  width: 90%;
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 16px;
+  background: white;
+  border: 2px dashed #2d6a4f; /* Green theme */
+  border-radius: 16px;
+  color: #2d6a4f;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.add-course-btn-large:active {
+  transform: scale(0.98);
+  background: #f0fdf4;
+}
+/* Card Container */
+.course-item-card {
+  margin-bottom: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  text-align: left;
+}
+
+.course-info h3 {
+  margin: 0;
+  color: #1b4332; /* Deep green */
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.hole-count {
+  margin: 4px 0 0 0;
+  color: #6a994e;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Action Buttons */
+.course-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.action-btn {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:active {
+  transform: scale(0.96);
+}
+
+/* Highlight for the active Home Course */
+.home-active {
+  background: #d8f3dc !important;
+  border-color: #2d6a4f !important;
+  color: #1b4332 !important;
+}
+
+.edit-btn:hover {
+  background: #e9ecef;
+}
+
+.action-btn .icon {
+  font-size: 1rem;
+}
+.course-item-card {
+  margin-bottom: 15px;
+  padding: 20px !important;
+  border-left: 6px solid #2d6a4f; /* Matches your dashboard accent */
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.course-info h3 {
+  color: #1b4332;
+  font-weight: 800;
+  margin: 0;
+}
+
+.home-active {
+  background: #1b4332 !important;
+  color: white !important;
+  border-color: #1b4332 !important;
+}
+.course-item-card {
+  margin-bottom: 15px;
+  padding: 20px !important;
+  border-left: 6px solid #2d6a4f; /* Matches your Weighted Index box */
+  background: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.course-info h3 {
+  margin: 0;
+  color: #1b4332;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.course-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  background: #fdfdfd;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.home-active {
+  background: #1b4332 !important;
+  color: white !important;
+  border-color: #1b4332 !important;
+}
+.course-item-card {
+  position: relative; /* Essential for the badge positioning */
+  transition: all 0.3s ease;
+}
+
+.is-home-border {
+  border-left: 6px solid #1b4332 !important; /* Thicker, darker green for home */
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.primary-home-badge {
+  position: absolute;
+  top: -12px;
+  right: 15px;
+  background: #1b4332;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 10;
+}
+
+.star-icon {
+  color: #ffca28; /* Gold star */
+}
+.player-handicap-badge.clickable {
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.1s;
+}
+
+.player-handicap-badge.clickable:active {
+  transform: scale(0.9);
+  background: #dcfce7;
+}
+
+.edit-hint {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 0.7rem;
+  background: #2d6a4f;
+  color: white;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Container and Layout */
+.player-manager-view {
+  padding-top: 85px !important;
+}
+
+.player-item-card {
+  margin-bottom: 12px;
+  padding: 20px !important;
+  border-left: 6px solid #2d6a4f;
+  position: relative;
+}
+
+/* Edit Controls */
+.edit-hcp-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.hcp-edit-input {
+  width: 70px;
+  padding: 8px;
+  border: 1px solid #2d6a4f;
+  border-radius: 8px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.save-hcp-btn {
+  background: #2d6a4f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.edit-player-btn {
+  background: transparent;
+  border: 1px solid #e9ecef;
+  color: #1b4332;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.close-menu-btn {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #1b4332;
+  cursor: pointer;
+}
+.home-stats-card {
+  border-left: 6px solid #1b4332;
+  margin-bottom: 20px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(240, 253, 244, 0.9)
+  ) !important;
+}
+
+.home-stats-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.home-course-name {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #1b4332;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.home-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  text-align: center;
+}
+
+.home-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #6a994e;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1b4332;
+}
+/* Fix the overlap */
+.nav-spacer {
+  height: 60px !important; /* Increased from 10px/20px to push title down */
+}
+
+/* 2. Ensure the main container has enough top padding for the fixed nav */
+.screen {
+  padding-top: 20px; /* Base padding */
+}
+
+/* 3. Ensure the titles don't have massive top margins of their own */
+.profile-title {
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1b4332;
+}
+
+/* Update the Setup and Profile views to sit closer to the top */
+.setup-view,
+.profile-view,
+.course-manager-view,
+.player-manager-view {
+  padding-top: 60px !important; /* Shrunk from 85px to pull the title up */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tighten the header row specifically */
+.setup-header {
+  margin-bottom: 15px; /* Less space below the title */
+}
+
+.setup-top-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: -10px; /* Pulls the Back Arrow/Title combo up slightly */
+}
+
+/* Ensure the title has breathing room */
+.view-header {
+  padding: 0 20px;
+  margin-bottom: 20px;
+}
+
+/* Style the Start New Round button to match your index card */
+.main-start-btn {
+  width: calc(100% - 40px);
+  margin: 0 20px 20px 20px;
+  background: #1b4332; /* Deep Forest Green */
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.main-start-btn:active {
+  transform: scale(0.98);
+}
+/* The big green handicap card */
+.handicap-card {
+  background: #2d6a4f; /* Dark green from your screenshot */
+  color: white;
+  padding: 30px 20px;
+  border-radius: 20px;
+  text-align: center;
+  margin-bottom: 15px;
+  box-shadow: 0 8px 16px rgba(45, 106, 79, 0.2);
+}
+
+.handicap-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+.handicap-value {
+  font-size: 4rem; /* Matching the big 4.2 in your screenshot */
+  font-weight: 900;
+  margin-top: 5px;
+}
+
+/* The 2x2 grid */
+.stats-grid-refined {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat-card-refined {
+  background: #f0fdf4; /* Light mint green */
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #dcfce7;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #2d6a4f;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1b4332;
+}
+/* Compact Handicap Card */
+.handicap-card-compact {
+  background: #1b4332; /* Even darker forest green */
+  color: white;
+  padding: 15px 20px; /* Reduced from 30px */
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(27, 67, 50, 0.2);
+  width: 80%; /* Makes it smaller/centered */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.handicap-value-small {
+  font-size: 2.2rem; /* Reduced from 4rem */
+  font-weight: 900;
+  line-height: 1;
+  margin-top: 5px;
+}
+
+/* Positioning the button at the bottom */
+.dashboard-footer-action {
+  margin-top: 30px;
+  padding-bottom: 40px;
+}
+
+.main-start-btn {
+  width: 100%;
+  background: #2d6a4f;
+  color: white;
+  border: none;
+  padding: 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+/* Container for all dashboard elements to ensure consistent margins */
+.dashboard-content {
+  padding: 0 20px; /* This creates the consistent "edge" for everything */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Handicap Card: Now fills the width of .dashboard-content */
+.handicap-card-compact {
+  background: #1b4332;
+  color: white;
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(27, 67, 50, 0.2);
+  width: 100%; /* Changed from 80% to stretch to edges */
+  box-sizing: border-box; /* Ensures padding doesn't add to width */
+}
+
+/* Footer Button: Now perfectly aligned with the grid above it */
+.dashboard-footer-action {
+  margin-top: 25px;
+  width: 100%;
+}
+
+.main-start-btn {
+  width: 100%; /* Stretches to the edge of the .dashboard-content */
+  background: #2d6a4f;
+  color: white;
+  border: none;
+  padding: 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  box-sizing: border-box; /* Crucial: keeps padding inside the 100% width */
+}
+
+/* Ensure the welcome text also aligns */
+.welcome-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #666;
+  margin-top: 4px;
+  padding: 0 20px; /* Match the content padding */
+}
+/* 1. Main Container: The single source of truth for edges */
+.dashboard-container {
+  padding: 0 20px; /* This defines the "gutter" for the whole screen */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 2. Header alignment */
+.dashboard-header {
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.profile-title {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.welcome-label {
+  margin: 4px 0 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #666;
+  letter-spacing: 0.5px;
+}
+
+/* 3. Stats Section & Card Widths */
+.stats-section {
+  width: 100%;
+}
+
+.handicap-card-compact {
+  width: 100%; /* Fill the container exactly */
+  box-sizing: border-box;
+  background: #1b4332;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* 4. Footer & Button alignment */
+.dashboard-footer {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.main-start-btn {
+  width: 100%; /* Match the cards above it exactly */
+  box-sizing: border-box;
+  background: #2d6a4f;
+  color: white;
+  padding: 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 5. FIX THE HAMBURGER BUTTON (In your global CSS) */
+/* Adjust the .menu-toggle or whatever class your hamburger uses */
+.menu-toggle {
+  position: absolute;
+  top: 24px;
+  left: 24px !important; /* Forces it to line up with the text and cards */
+  margin: 0;
+  padding: 0;
+  z-index: 100;
+}
+/* 1. The anchor for all alignment */
+.dashboard-content {
+  padding: 0 24px; /* Ensure this matches the nav-header padding above */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.dashboard-header {
+  margin: 0 0 24px 0; /* Align with no extra left margin */
+  padding: 0;
+}
+
+.profile-title,
+.welcome-label {
+  text-align: left;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+/* 2. Fix the button stretching too far */
+.main-start-btn {
+  width: 100% !important;
+  box-sizing: border-box; /* CRITICAL: Keeps padding from expanding the button */
+  background: #1b4332;
+  color: white;
+  border: none;
+  padding: 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0; /* Remove any default button margins */
+}
+
+/* 3. Align the handicap card to the same width */
+.handicap-card-compact {
+  width: 100%;
+  box-sizing: border-box;
+  background: #1b4332;
+  color: white;
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* 4. Align the Header and Hamburger */
+.dashboard-header {
+  margin: 0 0 20px 0; /* Zero out left margin */
+  padding: 0; /* Zero out left padding */
+  text-align: left;
+}
+
+.profile-title {
+  margin: 0;
+  padding: 0;
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-align: left;
+}
+
+.welcome-label {
+  margin: 4px 0 0 0;
+  padding: 0; /* Ensures it starts exactly where 'Dashboard' starts */
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #666;
+  text-align: left;
+}
+/* Update your global Hamburger/Menu CSS to match the 24px padding */
+.menu-toggle {
+  position: absolute;
+  top: 24px;
+  left: 24px !important; /* Forces it to line up with the text and cards */
+  margin: 0;
+  padding: 0;
+  z-index: 100;
+}
+/* 1. Header & Back Button Alignment */
+.setup-top-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-left: -5px; /* Nudges back arrow to look more natural with the text */
+}
+
+.back-arrow-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #1b4332;
+  cursor: pointer;
+  padding: 5px;
+}
+
+/* 2. Setup Cards */
+.setup-card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.grid-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* 3. Inputs & Selects */
+.setup-input,
+.setup-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fdfdfd;
+  margin-top: 8px;
+}
+
+.setup-select-mini {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px 0 0 8px;
+}
+
+.add-btn-small {
+  background: #1b4332;
+  color: white;
+  border: none;
+  padding: 0 15px;
+  border-radius: 0 8px 8px 0;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+/* 4. Fix the Overlap */
+.setup-view {
+  padding-top: 85px; /* Ensures the Hamburger and Back button have breathing room */
+}
+.back-arrow-btn {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #1b4332;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%; /* Ensures it stays level with the text height */
+  margin-top: 4px; /* Tiny adjustment to align arrow visual center with text */
+}
+
+.profile-title {
+  margin: 0;
+  line-height: 1.2;
+}
+/* Container for the footer buttons */
+.dashboard-footer-setup {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 40px;
+}
+
+/* The secondary cancel link */
+.cancel-round-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.cancel-round-btn:active {
+  color: #d32f2f;
+}
+
+/* Ensure header has no hidden shifts */
+.setup-header {
+  text-align: left;
+  margin-bottom: 25px;
+}
+/* Navigation Container */
+.nav-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px 24px; /* Matches the 24px horizontal padding of the dashboard */
+  z-index: 1000;
+  pointer-events: none; /* Allows clicking things 'under' the nav area if needed */
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* The Hamburger Button itself */
+.hamburger-btn {
+  background: #1b4332;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  pointer-events: auto; /* Re-enables clicking for the button */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+/* Navigation Wrapper */
+.nav-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* This 24px padding ensures alignment with the Dashboard titles */
+  padding: 15px 24px;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: none; /* Allows clicks to pass through the container */
+}
+
+.hamburger-btn {
+  background: #1b4332;
+  border: none;
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  pointer-events: auto; /* Re-enables clicking on the actual button */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Ensure the lines inside the hamburger are white and clean */
+.hamburger-btn span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: white;
+  border-radius: 2px;
+}
+/* Container for the dropdown and button */
+.player-select-row {
+  display: flex;
+  flex-direction: column; /* Stack them vertically */
+  gap: 12px;
+  width: 100%;
+}
+
+/* Make the dropdown stretch full width */
+.player-select-row select {
+  width: 100% !important;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  appearance: none; /* Modern look */
+  background-color: white;
+}
+
+/* Make the ADD button match the width and the green theme */
+.add-player-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #1b4332; /* Matches your 'Begin Round' button */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.active-player-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.player-tag {
+  background: #e8f5e9;
+  color: #1b4332;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-tag span {
+  cursor: pointer;
+  color: #d32f2f;
+  font-weight: bold;
+}
+/* Stack the details vertically inside the cell */
+.hole-info-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0 !important;
+  line-height: 1.2;
+}
+
+.h-num {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.h-details {
+  font-size: 0.65rem; /* Smaller to fit both Par and HCP comfortably */
+  color: #888;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+/* Styling for OUT and IN rows */
+.summary-label-cell {
+  background-color: #f0f0f0 !important;
+  font-weight: 800;
+  color: #555;
+  font-size: 0.8rem;
+}
+
+.summary-score-cell {
+  background-color: #f9f9f9;
+  font-weight: 700;
+  color: #333;
+}
+
+/* Styling for the final TOTAL row */
+.total-label-cell {
+  background-color: #1b4332 !important;
+  color: white !important;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+.total-score-cell {
+  background-color: #e8f5e9;
+  font-weight: 900;
+  color: #1b4332;
+  border-top: 2px solid #1b4332;
+}
+/* Container for both score groups */
+.lb-score-section {
+  display: flex;
+  align-items: flex-end; /* This forces both boxes to sit on the same bottom line */
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* Individual group (Label + Box) */
+.lb-score-box-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Labels for Gross/Net */
+.mini-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+}
+
+/* The Boxes */
+.lb-gross-box-mini,
+.score-badge.net-main {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+/* Colors */
+.lb-gross-box-mini {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.score-badge.net-main.even {
+  background-color: #f8f9fa;
+  color: #333;
+  border: 1px solid #ddd;
+}
+.score-badge.net-main.over {
+  background-color: #ffebee;
+  color: #c62828;
+}
+.score-badge.net-main.under {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+.lb-score-section {
+  display: flex;
+  flex-direction: column; /* This stacks Gross and Net vertically */
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.lb-score-box-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-label {
+  font-size: 0.6rem;
+  color: #666;
+  font-weight: bold;
+}
+.lb-score-section.horizontal {
+  display: flex;
+  flex-direction: row; /* This moves them side-by-side */
+  gap: 12px; /* Space between Gross and Net groups */
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.lb-score-box-group {
+  display: flex;
+  flex-direction: column; /* Keeps the "GROSS" label above the number */
+  align-items: center;
+  gap: 2px;
+}
+
+.mini-label {
+  font-size: 0.55rem;
+  color: #888;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* Ensure the leaderboard card expands to fit the new width */
+.leaderboard-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+}
+.fire-icon {
+  font-size: 1.2rem;
+  animation: flicker 1.5s infinite alternate;
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85); /* Darker for better contrast */
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.popup-box {
+  background: #ffffff; /* Using white background based on your screenshot */
+  color: #333333;
+  width: 100%;
+  max-width: 340px;
+  padding: 30px 20px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.popup-box h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.4rem;
+}
+
+.popup-box p {
+  margin-bottom: 25px;
+  line-height: 1.4;
+  font-size: 1.1rem;
+}
+.popup-actions.vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Space between buttons */
+  width: 100%;
+}
+.popup-actions .score-btn:active {
+  transform: scale(0.98);
+}
+
+/* Specific Button Colors */
+.popup-actions .confirm {
+  background-color: #2e7d32; /* Green */
+  color: white;
+}
+
+.popup-actions .secondary {
+  background-color: #1976d2; /* Blue */
+  color: white;
+}
+
+.popup-actions .cancel {
+  background-color: #616161; /* Grey */
+  co .hole-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 columns across */
+    gap: 8px;
+    margin-top: 15px;
+  }
+
+  .grid-hole-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 0;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .grid-hole-btn.active {
+    background: #2e7d32;
+    border-color: #4caf50;
+  }
+
+  .popup-box.wide {
+    max-width: 90%;
+    width: 350px;
+  }
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+  /* --- POPUP & MODAL OVERLAY --- */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+
+  .popup-box {
+    background: white;
+    width: 100%;
+    max-width: 340px;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .popup-box h3 {
+    margin: 0 0 10px 0;
+    color: #1b4332;
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+
+  .popup-box p {
+    color: #555;
+    font-size: 1rem;
+    line-height: 1.4;
+    margin-bottom: 20px;
+  }
+
+  /* Vertical Button Stacking */
+  .popup-actions.vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Fix for the big action buttons in popups */
+  .popup-actions .score-btn {
+    width: 100% !important;
+    height: auto !important;
+    padding: 14px !important;
+    font-size: 1rem !important;
+    border-radius: 12px !important;
+    border: none !important;
+    cursor: pointer;
+  }
+
+  .popup-actions .confirm {
+    background: #2d6a4f !important;
+    color: white !important;
+  }
+
+  .popup-actions .secondary {
+    background: #1976d2 !important;
+    color: white !important;
+  }
+
+  .popup-actions .cancel {
+    background: #f0f0f0 !important;
+    color: #666 !important;
+  }
+
+  /* --- HOLE PICKER GRID --- */
+  .hole-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin: 15px 0;
+  }
+
+  .grid-hole-btn {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  .grid-hole-btn.active {
+    background: #1b4332 !important;
+    color: white !important;
+    border-color: #1b4332 !important;
+  }
+  .modal-actions-vertical {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin-top: 15px;
+  }
+
+  .modal-btn {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 50px !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+    border: none !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+  }
+
+  .modal-btn.confirm {
+    background: #1b4332 !important;
+    color: white !important;
+  }
+  .modal-btn.secondary {
+    background: #1976d2 !important;
+    color: white !important;
+  }
+  .modal-btn.cancel {
+    background: #eee !important;
+    color: #444 !important;
+  }
+}
+
+/* Container for the buttons to stack them nicely */
+.modal-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
+  margin-top: 15px;
+}
+
+/* Grey for the 'Back' button in the picker */
+.modal-btn.cancel {
+  background: #eee !important;
+  color: #444 !important;
+}
+/* --- POPUP BUTTONS --- */
+.modal-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
+  margin-top: 15px;
+}
+
+.modal-btn {
+  width: 100% !important;
+  padding: 16px !important;
+  border-radius: 12px !important;
+  border: none !important;
+  font-weight: 800 !important;
+  font-size: 1rem !important;
+  cursor: pointer;
+}
+
+.modal-btn.confirm {
+  background: #1b4332 !important;
+  color: white !important;
+}
+.modal-btn.secondary {
+  background: #444 !important;
+  color: white !important;
+}
+.modal-btn.cancel {
+  background: #f0f0f0 !important;
+  color: #444 !important;
+}
+
+/* --- HOLE PICKER GRID FIX --- */
+.hole-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, 1fr) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  margin: 20px 0 !important;
+}
+
+.grid-hole-btn {
+  /* This 'all: unset' is the key to removing the default browser look */
+  all: unset !important;
+  aspect-ratio: 1 / 1 !important;
+  background: #f8f9fa !important;
+  border: 1px solid #ddd !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 800 !important;
+  font-size: 1.1rem !important;
+  color: #1b4332 !important;
+  cursor: pointer;
+  box-sizing: border-box !important;
+}
+
+.grid-hole-btn.active {
+  background: #1b4332 !important;
+  color: white !important;
+  border-color: #1b4332 !important;
+}
+
+.grid-hole-btn:active {
+  background: #e9ecef !important;
+  transform: scale(0.95);
+}
+.hole-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* This adds the space between the Par and HDCP boxes */
+  justify-content: center;
+}
+
+.stat-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-align: center;
+  min-width: 70px; /* Slightly wider to look more balanced */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-badge span {
+  font-size: 0.65rem;
+  font-weight: 800;
+  opacity: 0.8;
+  text-transform: uppercase;
+}
+
+.stat-badge .value {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+.handicap-card-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* existing styles... */
+}
+
+.hdcp-trend {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Handicap DOWN is good (Green) */
+.hdcp-trend.down {
+  color: #4ade80;
+}
+
+/* Handicap UP (Red) */
+.hdcp-trend.up {
+  color: #f87171;
+}
+
+/* Handicap SAME (White/Grey) */
+.hdcp-trend.same {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+}
+
+.trend-arrow {
+  font-size: 1rem;
+}
+
+.trend-value {
+  font-size: 0.9rem;
+}
+
+.trend-label {
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.9;
+  text-transform: lowercase;
+}
+.handicap-card-compact {
+  background: var(--primary-green);
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+}
+
+/* Trend Badge Styles */
+.hdcp-trend {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1); /* Ghost badge effect */
+  font-weight: 800;
+}
+
+.hdcp-trend.up {
+  color: #f87171 !important;
+  background: rgba(248, 113, 113, 0.15);
+}
+
+.hdcp-trend.down {
+  color: #4ade80 !important;
+  background: rgba(74, 222, 128, 0.15);
+}
+.hdcp-trend.same {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.trend-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+/* Fix the header overlap */
+.view-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+/* Styled Hole Grid */
+.hole-grid-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+.hole-header-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 2fr;
+  font-weight: bold;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.hole-input-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 2fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hole-input-row input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 15px;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  margin-top: 20px;
+  cursor: pointer;
+}
+.stats-view .dashboard-header {
+  padding-top: 60px; /* This creates a "safe zone" for the menu button */
+  margin-bottom: 20px;
+}
+
+/* Ensure the title itself has enough room */
+.stats-view .profile-title {
+  margin-left: 10px;
+  font-size: 1.8rem;
+}
+.winner-row {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  gap: 15px;
+}
+
+.winner-name {
+  font-weight: bold;
+  font-size: 1.2rem;
+  min-width: 100px;
+}
+
+.winner-trophies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.trophy-icon-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mini-trophy {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.trophy-year {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: -2px;
+}
+
+.win-count {
+  color: #2e7d32;
+  font-weight: bold;
+}
+.active-btn {
+  background-color: #1b4332;
+  color: white;
+  border: 2px solid #1b4332;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.inactive-btn {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.match-setup h3 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #1b4332;
+  margin-bottom: 15px;
+}
+/* Add this to your global CSS */
+.history-container,
+.summary-container,
+.profile-container {
+  padding-top: 70px; /* This pushes the titles down below the floating button */
+}
+/* Container for the score to keep it centered in the shape */
+.score-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0 auto;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+/* Birdie: Single Red Circle */
+.score-birdie {
+  border: 2px solid #e11d48;
+  border-radius: 50%;
+  color: #e11d48;
+}
+
+/* Eagle or Better: Double Red Circle */
+.score-eagle {
+  border: 2px solid #e11d48;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #e11d48;
+  color: #e11d48;
+}
+
+/* Bogey: Single Dark Square */
+.score-bogey {
+  border: 2px solid #334155;
+  color: #334155;
+}
+
+/* Double Bogey or Worse: Double Dark Square */
+.score-double-bogey {
+  border: 2px solid #334155;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #334155;
+  color: #334155;
+}
+
+/* Par: No shape, just standard text */
+.score-par {
+  color: #1e293b;
+}
+/* Base container for the number inside the grid cell */
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+/* Birdie: Single Red Circle */
+.shape-birdie {
+  border: 1.5px solid #e11d48;
+  border-radius: 50%;
+  color: #e11d48;
+}
+
+/* Eagle: Double Red Circle */
+.shape-eagle {
+  border: 1.5px solid #e11d48;
+  border-radius: 50%;
+  /* This creates the second outer circle */
+  box-shadow: 0 0 0 2px white, 0 0 0 3.5px #e11d48;
+  color: #e11d48;
+  /* Margin ensures the double ring doesn't overlap other cells */
+  margin: 4px;
+}
+
+/* Bogey: Single Dark Square */
+.shape-bogey {
+  border: 1.5px solid #334155;
+  border-radius: 2px;
+  color: #334155;
+}
+
+/* Double Bogey+: Double Dark Square */
+.shape-double-bogey {
+  border: 1.5px solid #334155;
+  border-radius: 2px;
+  /* This creates the second outer square */
+  box-shadow: 0 0 0 2px white, 0 0 0 3.5px #334155;
+  color: #334155;
+  margin: 4px;
+}
+/* The base button style */
+.stat-button {
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* The "Active" state */
+.stat-button.active {
+  background-color: #2e7d32; /* Golf Green */
+  color: white;
+  border-color: #1b5e20;
+  font-weight: bold;
+}
+/* --- HAMBURGER OVERRIDE - Add at very bottom of styles.css --- */
+.nav-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: auto !important;
+  padding: 10px !important;
+  z-index: 1100 !important;
+  pointer-events: none !important;
+  background: transparent !important;
+}
+
+.menu-toggle {
+  pointer-events: auto !important;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 38px !important;
+  height: 38px !important;
+  font-size: 1.1rem !important;
+  border-radius: 8px !important;
+  background: var(--primary-green) !important;
+  color: white !important;
+  border: none !important;
+  cursor: pointer !important;
+  opacity: 0.9 !important;
+}
+/* Ensure hamburger always stays on top */
+.nav-header {
+  z-index: 1200 !important;
+  background: white !important;
+  width: 58px !important;
+  padding: 10px !important;
+}
+
+.menu-toggle {
+  z-index: 1200 !important;
+}
+
+.menu-overlay {
+  z-index: 1150 !important;
+}
+/* ============================================
+   FINAL OVERRIDE - HAMBURGER TOP BAR
+   Must be at the very end of the file
+   ============================================ */
+.nav-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 55px !important;
+  padding: 8px 15px !important;
+  z-index: 1200 !important;
+  background: white !important;
+  border-bottom: 1px solid #eee !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  pointer-events: none !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.menu-toggle {
+  pointer-events: auto !important;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 38px !important;
+  height: 38px !important;
+  font-size: 1.1rem !important;
+  border-radius: 8px !important;
+  background: var(--primary-green) !important;
+  color: white !important;
+  border: none !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+}
+
+.menu-overlay {
+  z-index: 1150 !important;
+}
