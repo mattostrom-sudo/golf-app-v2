@@ -5,6 +5,7 @@ export default function BirdieBetView({
   playerDirectory = [],
   courseDirectory = [],
   user,
+  userProfileId,
 }) {
   const currentYear = new Date().getFullYear();
   const [entries, setEntries] = useState([]);
@@ -12,12 +13,16 @@ export default function BirdieBetView({
   const [showQuickEntry, setShowQuickEntry] = useState(false);
   const [selectedHoles, setSelectedHoles] = useState([]);
   const [saving, setSaving] = useState(false);
-
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
   const homeCourse = courseDirectory.find((c) => c.is_home_course === true);
   const birdieBetPlayers = playerDirectory.filter(
     (p) => p.is_birdie_bet === true
   );
-
+  console.log("user.id:", user?.id);
+  console.log(
+    "birdieBetPlayers:",
+    birdieBetPlayers.map((p) => p.id)
+  );
   // Fetch all birdie bet entries for current year
   const fetchEntries = async () => {
     setLoading(true);
@@ -55,7 +60,12 @@ export default function BirdieBetView({
     const today = new Date().toISOString().split("T")[0];
 
     // Get already birdied holes for this player to avoid duplicates
-    const alreadyBirdied = getBirdiedHoles(user.id);
+    if (!selectedPlayer) {
+      alert("Please select a player first.");
+      setSaving(false);
+      return;
+    }
+    const alreadyBirdied = getBirdiedHoles(selectedPlayer);
     const newHoles = selectedHoles.filter((h) => !alreadyBirdied.includes(h));
 
     if (newHoles.length === 0) {
@@ -65,7 +75,7 @@ export default function BirdieBetView({
     }
 
     const inserts = newHoles.map((hole) => ({
-      player_id: user.id,
+      player_id: selectedPlayer,
       hole_number: hole,
       date: today,
       year: currentYear,
@@ -76,6 +86,7 @@ export default function BirdieBetView({
     if (!error) {
       await fetchEntries();
       setSelectedHoles([]);
+      setSelectedPlayer(null);
       setShowQuickEntry(false);
     } else {
       alert("Error saving: " + error.message);
@@ -96,7 +107,7 @@ export default function BirdieBetView({
     })
     .sort((a, b) => b.count - a.count);
 
-  const myBirdiedHoles = getBirdiedHoles(user?.id);
+  const myBirdiedHoles = selectedPlayer ? getBirdiedHoles(selectedPlayer) : [];
 
   return (
     <div
@@ -130,7 +141,7 @@ export default function BirdieBetView({
 
       <div style={{ padding: "0 15px" }}>
         {/* Quick Entry Button */}
-        {user && birdieBetPlayers.find((p) => p.id === user.id) && (
+        {user && birdieBetPlayers.length > 0 && (
           <button
             onClick={() => setShowQuickEntry(!showQuickEntry)}
             style={{
@@ -166,10 +177,47 @@ export default function BirdieBetView({
                 fontSize: "0.85rem",
                 fontWeight: "700",
                 color: "#1e293b",
+                marginBottom: "8px",
+              }}
+            >
+              Select player:
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                flexWrap: "wrap",
                 marginBottom: "12px",
               }}
             >
-              Select holes you birdied:
+              {birdieBetPlayers.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setSelectedPlayer(p.id)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "20px",
+                    border: "none",
+                    background: selectedPlayer === p.id ? "#1b4332" : "#f1f5f9",
+                    color: selectedPlayer === p.id ? "white" : "#64748b",
+                    fontWeight: "700",
+                    fontSize: "0.8rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  {p.full_name.split(" ")[0]}
+                </button>
+              ))}
+            </div>
+            <div
+              style={{
+                fontSize: "0.85rem",
+                fontWeight: "700",
+                color: "#1e293b",
+                marginBottom: "12px",
+              }}
+            >
+              Select holes birdied:
             </div>
             <div
               style={{
